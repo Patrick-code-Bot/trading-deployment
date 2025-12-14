@@ -1,0 +1,177 @@
+# ============================================================================
+# Docker Compose Configuration for Trading Strategies
+# ============================================================================
+# This orchestrates both nautilus_AItrader and GoldArb strategies along with
+# supporting services (Redis, PostgreSQL).
+#
+# Usage:
+#   docker-compose up -d              # Start all services
+#   docker-compose logs -f aitrader   # View logs for specific service
+#   docker-compose down               # Stop all services
+#   docker-compose restart aitrader   # Restart specific service
+# ============================================================================
+
+version: '3.8'
+
+# ============================================================================
+# Services
+# ============================================================================
+services:
+
+  # --------------------------------------------------------------------------
+  # Redis - Cache and Message Broker
+  # --------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: nautilus-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - trading_network
+
+  # --------------------------------------------------------------------------
+  # PostgreSQL - Data Persistence (Optional)
+  # --------------------------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: nautilus-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nautilus
+      POSTGRES_USER: nautilus
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nautilus"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - trading_network
+
+  # --------------------------------------------------------------------------
+  # nautilus_AItrader - DeepSeek AI Strategy on Binance
+  # --------------------------------------------------------------------------
+  aitrader:
+    build:
+      context: ./nautilus_AItrader
+      dockerfile: Dockerfile
+    container_name: nautilus-aitrader
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./nautilus_AItrader/.env
+    environment:
+      # Override with Docker environment
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=nautilus
+      - AUTO_CONFIRM=true
+      # Strategy will use .env file for API keys and other configs
+    volumes:
+      # Mount logs directory for persistence
+      - ./nautilus_AItrader/logs:/app/logs
+      # Mount data directory (optional, for storing historical data)
+      - ./nautilus_AItrader/data:/app/data
+      # Mount configs if you want to update without rebuild (optional)
+      # - ./nautilus_AItrader/configs:/app/configs:ro
+    networks:
+      - trading_network
+    # Resource limits (adjust based on your server)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # --------------------------------------------------------------------------
+  # GoldArb - PAXG-XAUT Grid Strategy on Bybit
+  # --------------------------------------------------------------------------
+  goldarb:
+    build:
+      context: ./GoldArb
+      dockerfile: Dockerfile
+    container_name: nautilus-goldarb
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./GoldArb/.env
+    environment:
+      # Override with Docker environment
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=nautilus
+    volumes:
+      # Mount logs directory for persistence
+      - ./GoldArb/logs:/app/logs
+      # Mount data directory (optional)
+      - ./GoldArb/data:/app/data
+    networks:
+      - trading_network
+    # Resource limits (adjust based on your server)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  trading_network:
+    driver: bridge
+    name: nautilus-trading-network
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  redis_data:
+    name: nautilus-redis-data
+    driver: local
+  postgres_data:
+    name: nautilus-postgres-data
+    driver: local

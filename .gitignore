@@ -1,0 +1,96 @@
+# ============================================================================
+# .gitignore for trading-deployment repository
+# ============================================================================
+
+# Environment files - NEVER commit API keys!
+.env
+*.env
+!.env.example
+!.env.template
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.sublime-project
+*.sublime-workspace
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Logs - these should be volume-mounted, not committed
+*.log
+logs/
+nautilus_AItrader/logs/
+GoldArb/logs/
+trader_*.log
+
+# Data directories - volume-mounted
+data/
+nautilus_AItrader/data/
+GoldArb/data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Strategy subdirectories have their own .git
+# We don't want to track their .git directories
+nautilus_AItrader/.git/
+GoldArb/.git/
+
+# Docker generated files
+.docker/
+*.pid
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+
+# Coverage and testing
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Backup files
+backup/
+*.backup
+*.old
+
+# macOS
+.AppleDouble
+.LSOverride
+Icon
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Redis dump files
+dump.rdb
+
+# PostgreSQL
+*.dump

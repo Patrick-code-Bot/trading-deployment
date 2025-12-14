@@ -1,0 +1,33 @@
+# ============================================================================
+# Docker ignore file for Project25 root
+# ============================================================================
+
+# Environment files
+.env
+.env.local
+*.env
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
