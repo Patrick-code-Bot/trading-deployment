@@ -66,7 +66,7 @@ services:
   # --------------------------------------------------------------------------
   aitrader:
     build:
-      context: ./nautilus_AItrader
+      context: /home/ubuntu/nautilus_deepseek
       dockerfile: Dockerfile
     container_name: nautilus-aitrader
     restart: unless-stopped
@@ -76,7 +76,7 @@ services:
       postgres:
         condition: service_healthy
     env_file:
-      - ./nautilus_AItrader/.env
+      - /home/ubuntu/nautilus_deepseek/.env
     environment:
       # Override with Docker environment
       - REDIS_HOST=redis
@@ -88,11 +88,11 @@ services:
       # Strategy will use .env file for API keys and other configs
     volumes:
       # Mount logs directory for persistence
-      - ./nautilus_AItrader/logs:/app/logs
+      - /home/ubuntu/nautilus_deepseek/logs:/app/logs
       # Mount data directory (optional, for storing historical data)
-      - ./nautilus_AItrader/data:/app/data
+      - /home/ubuntu/nautilus_deepseek/data:/app/data
       # Mount configs if you want to update without rebuild (optional)
-      # - ./nautilus_AItrader/configs:/app/configs:ro
+      # - /home/ubuntu/nautilus_deepseek/configs:/app/configs:ro
     networks:
       - trading_network
     # Resource limits (adjust based on your server)
@@ -116,7 +116,7 @@ services:
   # --------------------------------------------------------------------------
   goldarb:
     build:
-      context: ./GoldArb
+      context: /home/ubuntu/GoldArb
       dockerfile: Dockerfile
     container_name: nautilus-goldarb
     restart: unless-stopped
@@ -126,7 +126,7 @@ services:
       postgres:
         condition: service_healthy
     env_file:
-      - ./GoldArb/.env
+      - /home/ubuntu/GoldArb/.env
     environment:
       # Override with Docker environment
       - REDIS_HOST=redis
@@ -136,9 +136,9 @@ services:
       - POSTGRES_DB=nautilus
     volumes:
       # Mount logs directory for persistence
-      - ./GoldArb/logs:/app/logs
+      - /home/ubuntu/GoldArb/logs:/app/logs
       # Mount data directory (optional)
-      - ./GoldArb/data:/app/data
+      - /home/ubuntu/GoldArb/data:/app/data
     networks:
       - trading_network
     # Resource limits (adjust based on your server)
