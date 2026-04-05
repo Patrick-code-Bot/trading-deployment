@@ -37,6 +37,12 @@ services:
       retries: 3
     networks:
       - trading_network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
 
   # --------------------------------------------------------------------------
   # PostgreSQL - Data Persistence (Optional)
@@ -60,6 +66,12 @@ services:
       retries: 3
     networks:
       - trading_network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
 
   # --------------------------------------------------------------------------
   # nautilus_AItrader - DeepSeek AI Strategy on Binance
@@ -162,7 +174,7 @@ services:
 # ============================================================================
 networks:
   trading_network:
-    driver: bridge
+    external: true
     name: nautilus-trading-network
 
 # ============================================================================
